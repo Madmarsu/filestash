@@ -66,13 +66,14 @@ func Init(a *App) {
 	// API for File management
 	files := r.PathPrefix("/api/files").Subrouter()
 	middlewares = []Middleware{ ApiHeaders, SecureHeaders, SessionStart, LoggedInOnly }
-	files.HandleFunc("/ls",    NewMiddlewareChain(FileLs,    middlewares, *a)).Methods("GET")
-	files.HandleFunc("/cat",   NewMiddlewareChain(FileCat,   middlewares, *a)).Methods("GET")
-	files.HandleFunc("/cat",   NewMiddlewareChain(FileSave,  middlewares, *a)).Methods("POST")
-	files.HandleFunc("/mv",    NewMiddlewareChain(FileMv,    middlewares, *a)).Methods("GET")
-	files.HandleFunc("/rm",    NewMiddlewareChain(FileRm,    middlewares, *a)).Methods("GET")
-	files.HandleFunc("/mkdir", NewMiddlewareChain(FileMkdir, middlewares, *a)).Methods("GET")
-	files.HandleFunc("/touch", NewMiddlewareChain(FileTouch, middlewares, *a)).Methods("GET")
+	files.HandleFunc("/ls",     NewMiddlewareChain(FileLs,     middlewares, *a)).Methods("GET")
+	files.HandleFunc("/cat",    NewMiddlewareChain(FileCat,    middlewares, *a)).Methods("GET")
+	files.HandleFunc("/cat",    NewMiddlewareChain(FileSave,   middlewares, *a)).Methods("POST")
+	files.HandleFunc("/mv",     NewMiddlewareChain(FileMv,     middlewares, *a)).Methods("GET")
+	files.HandleFunc("/rm",     NewMiddlewareChain(FileRm,     middlewares, *a)).Methods("GET")
+	files.HandleFunc("/mkdir",  NewMiddlewareChain(FileMkdir,  middlewares, *a)).Methods("GET")
+	files.HandleFunc("/touch",  NewMiddlewareChain(FileTouch,  middlewares, *a)).Methods("GET")
+	files.HandleFunc("/export", NewMiddlewareChain(FileExport, middlewares, *a)).Methods("GET")
 
 	// API for Shared link
 	share := r.PathPrefix("/api/share").Subrouter()

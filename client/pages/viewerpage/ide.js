@@ -4,7 +4,7 @@ import { withRouter } from 'react-router';
 import { Prompt } from "react-router-dom";
 import { Subject } from 'rxjs/Subject';
 
-import { NgIf, Fab, Icon } from '../../components/';
+import { NgIf, Fab, Icon,  Dropdown, DropdownButton, DropdownList, DropdownItem } from '../../components/';
 import { confirm } from '../../helpers/';
 import { Editor } from './editor';
 import { MenuBar } from './menubar';
@@ -48,6 +48,7 @@ export class IDE extends React.Component {
     }
     componentWillUnmount(){
         this.unblock();
+        window.clearInterval(this.state.id);
     }
 
     save(){
@@ -70,7 +71,6 @@ export class IDE extends React.Component {
         });
     }
 
-
     /* Org Viewer specific stuff */
     toggleAgenda(force = null){
         this.setState({appear_agenda: force === null ? !this.state.appear_agenda : !!force});
@@ -85,10 +85,24 @@ export class IDE extends React.Component {
         this.state.event.next(["goTo", lineNumber]);
     }
 
+    download(){
+        document.cookie = "download=yes; path=/; max-age=120;";
+        this.setState({random: Math.random()});
+        this.state.id = window.setInterval(() => {
+            if(/download=yes/.test(document.cookie) === false){
+                window.clearInterval(this.state.id);
+                this.setState({random: Math.random()});
+            }
+        }, 100);
+    }
+
     render(){
+        const changeExt = function(filename, ext){
+            return filename.replace(/\.org$/, "."+ext);
+        };
         return (
             <div className="component_ide">
-              <MenuBar title={this.props.filename} download={this.props.url}>
+              <MenuBar title={this.props.filename} download={this.state.mode === 'orgmode' ? null : this.props.url}>
                 <NgIf type="inline" cond={this.state.mode === 'orgmode'}>
                   <span onClick={this.onModeChange.bind(this)}>
                     <NgIf cond={this.state.folding === "SHOW_ALL"} type="inline">
@@ -101,6 +115,22 @@ export class IDE extends React.Component {
                       <Icon name="arrow_down_double"/>
                     </NgIf>
                   </span>
+                  <Dropdown className="view sort" onChange={() => this.download()} enable={/download=yes/.test(document.cookie) ? false : true}>
+                    <DropdownButton>
+                      <Icon name={/download=yes/.test(document.cookie) ? "loading_white" : "download_white"}/>
+                    </DropdownButton>
+                    <DropdownList>
+                      <DropdownItem name="na"><a download={this.props.filename} href={this.props.url}>Save current file</a></DropdownItem>
+                      <DropdownItem name="na"><a download={changeExt(this.props.filename, "html")} href={"/api/files/export?path="+window.encodeURIComponent(this.props.path)+"&mime=text/html"}>Export as HTML</a></DropdownItem>
+                      <DropdownItem name="na"><a download={changeExt(this.props.filename, "pdf")}  href={"/api/files/export?path="+window.encodeURIComponent(this.props.path)+"&mime=application/pdf"}>Export as PDF</a></DropdownItem>
+                      <DropdownItem name="na"><a download={changeExt(this.props.filename, "txt")}  href={"/api/files/export?path="+window.encodeURIComponent(this.props.path)+"&mime=text/plain"}>Export as Text</a></DropdownItem>
+                      <DropdownItem name="na"><a download={changeExt(this.props.filename, "tex")}  href={"/api/files/export?path="+window.encodeURIComponent(this.props.path)+"&mime=text/x-latex"}>Export as Latex</a></DropdownItem>
+                      <DropdownItem name="na"><a download={changeExt(this.props.filename, "ics")}  href={"/api/files/export?path="+window.encodeURIComponent(this.props.path)+"&mime=text/calendar"}>Export as Calendar</a></DropdownItem>
+                      <DropdownItem name="na"><a download={changeExt(this.props.filename, "pdf")}  href={"/api/files/export?path="+window.encodeURIComponent(this.props.path)+"&mime=application/pdf&mode=beamer"}>Export as Beamer</a></DropdownItem>
+                      <DropdownItem name="na"><a download={changeExt(this.props.filename, "odt")}  href={"/api/files/export?path="+window.encodeURIComponent(this.props.path)+"&mime=application/vnd.oasis.opendocument.text"}>Export as Open office</a></DropdownItem>
+                      <DropdownItem name="na"><a download={changeExt(this.props.filename, "md")}   href={"/api/files/export?path="+window.encodeURIComponent(this.props.path)+"mime=text/markdown"}>Export as Markdown</a></DropdownItem>
+                    </DropdownList>
+                  </Dropdown>
 
                   <span onClick={this.toggleAgenda.bind(this)}>
                     <Icon name="calendar_white"/>
